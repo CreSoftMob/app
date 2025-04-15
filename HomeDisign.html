@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App de Câmera Interativa</title>
+
+  <!-- Meta tags PWA -->
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <link rel="icon" href="icons/Target-.jpg">
+  <link rel="manifest" href="app/manifest.json">
+
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+      background: #000;
+      color: white;
+      -webkit-user-select: none;
+      user-select: none;
+      touch-action: none;
+    }
+
+    #video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 0;
+    }
+
+    #overlay-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      z-index: 1;
+      touch-action: none;
+    }
+
+    #overlay-image {
+      max-width: 80vw;
+      max-height: 80vh;
+      opacity: 0.8;
+      pointer-events: none;
+      display: block;
+      user-select: none;
+    }
+
+    .control-btn {
+      position: absolute;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.6);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      touch-action: manipulation;
+      width: 10;
+    }
+
+    #expand-btn {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    #select-image-btn {
+      bottom: 20px;
+      left: 20px;
+    }
+
+    #switch-camera-btn {
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    #file-input {
+      display: none;
+    }
+
+    #opacity-slider,
+    #width-slider,
+    #height-slider {
+      position: absolute;
+      width: 200px;
+      z-index: 2;
+      touch-action: manipulation;
+    }
+
+    #opacity-slider {
+      bottom: 70px;
+      left: 20px;
+    }
+
+    #width-slider {
+      top: 20px;
+      left: 20px;
+    }
+
+    #height-slider {
+      top: 60px;
+      left: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <video id="video" autoplay playsinline></video>
+
+  <div id="overlay-container">
+    <img id="overlay-image" src="Target-.jpg" alt="Imagem sobreposta">
+  </div>
+
+  <button class="control-btn" id="expand-btn">🔍 Expand</button>
+  <button class="control-btn" id="select-image-btn">📁 Gallery</button>
+  <button class="control-btn" id="switch-camera-btn">🔁 Camera Change</button>
+
+  <input type="file" id="file-input" accept="image/*">
+  <input type="range" id="opacity-slider" min="0" max="1" step="0.05" value="0.8">
+  <input type="range" id="width-slider" min="10" max="100" value="80" step="1" title="Largura (%)">
+  <input type="range" id="height-slider" min="10" max="100" value="80" step="1" title="Altura (%)">
+
+  <script>
+    const video = document.getElementById('video');
+    let currentFacingMode = "environment"; // Começa com câmera traseira
+    let currentStream = null;
+
+    function startCamera(facingMode) {
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+      }
+
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: facingMode }
+      })
+        .then(stream => {
+          currentStream = stream;
+          video.srcObject = stream;
+        })
+        .catch(err => {
+          console.error("Erro ao acessar a câmera:", err);
+          alert("Não foi possível acessar a câmera.");
+        });
+    }
+
+    // Iniciar câmera ao carregar
+    startCamera(currentFacingMode);
+
+    // Alternar câmera
+    document.getElementById("switch-camera-btn").addEventListener("click", () => {
+      currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
+      startCamera(currentFacingMode);
+    });
+
+    // Referências para a imagem
+    const container = document.getElementById("overlay-container");
+    const image = document.getElementById("overlay-image");
+    let isDragging = false, startX, startY, currentX = 0, currentY = 0, scale = 1, initialDistance = null;
+
+    container.addEventListener("touchstart", e => {
+      if (e.touches.length === 1) {
+        isDragging = true;
+        startX = e.touches[0].clientX - currentX;
+        startY = e.touches[0].clientY - currentY;
+      } else if (e.touches.length === 2) {
+        isDragging = false;
+        initialDistance = getDistance(e.touches[0], e.touches[1]);
+      }
+    });
+
+    container.addEventListener("touchmove", e => {
+      e.preventDefault();
+      if (e.touches.length === 1 && isDragging) {
+        currentX = e.touches[0].clientX - startX;
+        currentY = e.touches[0].clientY - startY;
+      } else if (e.touches.length === 2) {
+        let newDistance = getDistance(e.touches[0], e.touches[1]);
+        if (initialDistance) {
+          scale = Math.min(Math.max(scale * (newDistance / initialDistance), 0.3), 5);
+          initialDistance = newDistance;
+        }
+      }
+      updateTransform();
+    });
+
+    container.addEventListener("touchend", e => {
+      if (e.touches.length < 2) initialDistance = null;
+      if (e.touches.length === 0) isDragging = false;
+    });
+
+    container.addEventListener("mousedown", e => {
+      isDragging = true;
+      startX = e.clientX - currentX;
+      startY = e.clientY - currentY;
+    });
+
+    document.addEventListener("mousemove", e => {
+      if (isDragging) {
+        currentX = e.clientX - startX;
+        currentY = e.clientY - startY;
+        updateTransform();
+      }
+    });
+
+    document.addEventListener("mouseup", () => isDragging = false);
+
+    container.addEventListener("wheel", e => {
+      e.preventDefault();
+      scale = Math.min(Math.max(scale * (e.deltaY < 0 ? 1.1 : 0.9), 0.3), 5);
+      updateTransform();
+    });
+
+    function getDistance(t1, t2) {
+      let dx = t2.clientX - t1.clientX;
+      let dy = t2.clientY - t1.clientY;
+      return Math.hypot(dx, dy);
+    }
+
+    function updateTransform() {
+      container.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
+    }
+
+    // Expandir imagem
+    document.getElementById("expand-btn").addEventListener("click", () => {
+      image.style.maxWidth = "100vw";
+      image.style.maxHeight = "100vh";
+    });
+
+    // Selecionar imagem da galeria
+    document.getElementById("select-image-btn").addEventListener("click", () => {
+      document.getElementById("file-input").click();
+    });
+
+    document.getElementById("file-input").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (file && file.type.startsWith("image/")) {
+        const reader = new FileReader();
+        reader.onload = event => {
+          image.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Sliders de opacidade, largura e altura
+    document.getElementById("opacity-slider").addEventListener("input", e => {
+      image.style.opacity = e.target.value;
+    });
+
+    document.getElementById("width-slider").addEventListener("input", e => {
+      image.style.maxWidth = `${e.target.value}vw`;
+    });
+
+    document.getElementById("height-slider").addEventListener("input", e => {
+      image.style.maxHeight = `${e.target.value}vh`;
+    });
+    // Registro do Service Worker no navegador
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('app/service-worker.js')
+        .then(function (registration) {
+          console.log('Service Worker registrado com sucesso:', registration);
+        })
+        .catch((error) => {
+          console.log('Erro ao registrar o Service Worker:', error);
+        });
+      });
+
+    }
+
+
+  </script>
+</body>
+
+</html>

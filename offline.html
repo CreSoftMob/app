@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Offline</title>
+    <style>
+        body {
+            background-color: #121212; /* fundo escuro */
+            color: #fff;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .container {
+            background: linear-gradient(45deg, #ff6a00, #ffab00); /* Laranja tecnológico */
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(255, 165, 0, 0.8);
+            max-width: 400px;
+            width: 100%;
+            animation: glow 1.5s infinite alternate;
+        }
+
+        h1 {
+            font-size: 50px;
+            margin: 0;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        p {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        @keyframes glow {
+            0% {
+                box-shadow: 0 0 10px #ff6a00, 0 0 20px #ff6a00, 0 0 30px #ffab00, 0 0 40px #ffab00;
+            }
+            100% {
+                box-shadow: 0 0 20px #ff6a00, 0 0 30px #ffab00, 0 0 40px #ffab00, 0 0 50px #ff6a00;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Você está Offline</h1>
+        <p>Não foi possível se conectar à internet. Verifique sua conexão e tente novamente.</p>
+    </div>
+    <div class="footer">
+        <p>&copy; 2025 - Projeto Tecnológico</p>
+    </div>
+</body>
+</html>
