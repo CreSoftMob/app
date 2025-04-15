@@ -5,7 +5,8 @@ self.addEventListener('install', (event) => {
       return cache.addAll([
         '/',                 // Página inicial
         '/HomeDesign.html',        // Página home
-        '/Target-.jpg',           // Imagem
+        '/icons/Target-.jpg',
+        '/offline.html',
       ]);
     })
   );
