@@ -2,18 +2,18 @@
     "name": "TargetDesign",
     "short_name": "TargetDisign",
     "description": "Ferramenta de Desenho",
-    "start_url": "app/HomeDisign.html",
+    "start_url": "/app/HomeDesign.html",
     "display": "standalone", 
     "background_color": "white",
     "theme_color": "white",
     "icons": [
       {
-        "src": ".icons/Target-.jpg", 
+        "src": "icons/Target-.jpg", 
         "sizes": "192x192",
         "type": "image/png"
       },
       {
-        "src": ".icons/Target-.jpg", 
+        "src": "icons/Target-.jpg", 
         "sizes": "512x512",
         "type": "image/png"
       }
