@@ -3,8 +3,8 @@
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>App de Câmera Interativa</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Target - CSMStore</title>
 
   <!-- Meta tags PWA -->
   <meta name="theme-color" content="#000000" />
@@ -12,7 +12,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <link rel="icon" href="/icons/Target-.jpg">
   <link rel="manifest" href="/app/manifest.json">
-
 
   <style>
     * {
@@ -73,7 +72,11 @@
       font-size: 16px;
       cursor: pointer;
       touch-action: manipulation;
-      width: 10;
+    }
+
+    #start-camera-btn {
+      top: 20px;
+      right: 20px;
     }
 
     #expand-btn {
@@ -126,11 +129,12 @@
   <video id="video" autoplay playsinline></video>
 
   <div id="overlay-container">
-    <img id="overlay-image" src="Target-.jpg" alt="Imagem sobreposta">
+    <img id="overlay-image" src="icons/Target-.jpg" alt="Imagem sobreposta">
   </div>
 
+  <button class="control-btn" id="start-camera-btn">📷 Open</button>
   <button class="control-btn" id="expand-btn">🔍 Expand</button>
-  <button class="control-btn" id="select-image-btn">📁 Gallery</button>
+  <label for="file-input" class="control-btn" id="select-image-btn">📁 Gallery</label>
   <button class="control-btn" id="switch-camera-btn">🔁 Camera Change</button>
 
   <input type="file" id="file-input" accept="image/*">
@@ -140,7 +144,7 @@
 
   <script>
     const video = document.getElementById('video');
-    let currentFacingMode = "environment"; // Começa com câmera traseira
+    let currentFacingMode = "environment";
     let currentStream = null;
 
     function startCamera(facingMode) {
@@ -161,16 +165,15 @@
         });
     }
 
-    // Iniciar câmera ao carregar
-    startCamera(currentFacingMode);
+    document.getElementById("start-camera-btn").addEventListener("click", () => {
+      startCamera(currentFacingMode);
+    });
 
-    // Alternar câmera
     document.getElementById("switch-camera-btn").addEventListener("click", () => {
       currentFacingMode = (currentFacingMode === "environment") ? "user" : "environment";
       startCamera(currentFacingMode);
     });
 
-    // Referências para a imagem
     const container = document.getElementById("overlay-container");
     const image = document.getElementById("overlay-image");
     let isDragging = false, startX, startY, currentX = 0, currentY = 0, scale = 1, initialDistance = null;
@@ -238,15 +241,9 @@
       container.style.transform = `translate(${currentX}px, ${currentY}px) scale(${scale})`;
     }
 
-    // Expandir imagem
     document.getElementById("expand-btn").addEventListener("click", () => {
       image.style.maxWidth = "100vw";
       image.style.maxHeight = "100vh";
-    });
-
-    // Selecionar imagem da galeria
-    document.getElementById("select-image-btn").addEventListener("click", () => {
-      document.getElementById("file-input").click();
     });
 
     document.getElementById("file-input").addEventListener("change", e => {
@@ -260,7 +257,6 @@
       }
     });
 
-    // Sliders de opacidade, largura e altura
     document.getElementById("opacity-slider").addEventListener("input", e => {
       image.style.opacity = e.target.value;
     });
@@ -272,21 +268,19 @@
     document.getElementById("height-slider").addEventListener("input", e => {
       image.style.maxHeight = `${e.target.value}vh`;
     });
-    // Registro do Service Worker no navegador
+
+    // Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/app/service-worker.js')
-        .then((registration) => {
-          console.log('Service Worker registrado com sucesso:', registration);
-        })
-        .catch((error) => {
-          console.log('Erro ao registrar o Service Worker:', error);
-        });
+          .then(registration => {
+            console.log('Service Worker registrado com sucesso:', registration);
+          })
+          .catch(error => {
+            console.log('Erro ao registrar o Service Worker:', error);
+          });
       });
-
     }
-
-
   </script>
 </body>
 

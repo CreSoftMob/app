@@ -1,6 +1,6 @@
 {
     "name": "TargetDesign",
-    "short_name": "TargetDisign",
+    "short_name": "TargetDesign",
     "description": "Ferramenta de Desenho",
     "start_url": "/app/HomeDesign.html",
     "display": "standalone", 
